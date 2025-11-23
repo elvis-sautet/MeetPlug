@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MeetPlug - Vanilla JS Example</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      min-height: 100vh;
+      color: white;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+
+    .video-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .video-wrapper {
+      position: relative;
+      background: #1f2937;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 16/9;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .video-label {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .status {
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .participants {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .participant-item {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    input {
+      padding: 12px 16px;
+      border: 2px solid #374151;
+      border-radius: 8px;
+      background: #1f2937;
+      color: white;
+      font-size: 16px;
+      margin-right: 10px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .form-group {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎥 MeetPlug</h1>
+      <p>Vanilla JavaScript Example</p>
+    </div>
+
+    <div id="join-form" class="form-group">
+      <input type="text" id="room-id" placeholder="Enter Room ID" value="demo-room">
+      <input type="text" id="participant-name" placeholder="Your Name" value="Guest">
+      <button class="btn-primary" onclick="joinMeeting()">Join Meeting</button>
+    </div>
+
+    <div id="meeting-controls" style="display: none;">
+      <div class="status">
+        <h3>Meeting Status: <span id="status">Connected</span></h3>
+        <p>Room ID: <span id="current-room">-</span></p>
+        <p>Participants: <span id="participant-count">0</span></p>
+      </div>
+
+      <div class="controls">
+        <button class="btn-success" id="toggle-audio" onclick="toggleAudio()">Mute Audio</button>
+        <button class="btn-success" id="toggle-video" onclick="toggleVideo()">Stop Video</button>
+        <button class="btn-secondary" onclick="toggleScreenShare()">Share Screen</button>
+        <button class="btn-danger" onclick="leaveMeeting()">Leave Meeting</button>
+      </div>
+
+      <div id="participants" class="participants">
+        <h3>Participants</h3>
+        <div id="participant-list"></div>
+      </div>
+
+      <div class="video-container" id="video-container">
+        <div class="video-wrapper">
+          <video id="local-video" autoplay muted playsinline></video>
+          <div class="video-label">You</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import MeetPlugSDK from 'meetplug';
+
+    let sdk = null;
+    let audioEnabled = true;
+    let videoEnabled = true;
+
+    window.joinMeeting = async function() {
+      const roomId = document.getElementById('room-id').value;
+      const participantName = document.getElementById('participant-name').value;
+
+      if (!roomId || !participantName) {
+        alert('Please enter both room ID and your name');
+        return;
+      }
+
+      try {
+        // Initialize SDK
+        sdk = new MeetPlugSDK({
+          enableChat: true,
+          enableScreenShare: true,
+        });
+
+        // Set up event listeners
+        sdk.on('room:joined', (room) => {
+          console.log('Joined room:', room);
+          document.getElementById('current-room').textContent = room.id;
+          updateUI();
+        });
+
+        sdk.on('participant:joined', (participant) => {
+          console.log('Participant joined:', participant);
+          updateParticipantList();
+        });
+
+        sdk.on('participant:left', (participantId) => {
+          console.log('Participant left:', participantId);
+          updateParticipantList();
+        });
+
+        sdk.on('stream:added', (participantId, stream) => {
+          console.log('Stream added:', participantId);
+          addRemoteVideo(participantId, stream);
+        });
+
+        // Join room
+        await sdk.joinRoom(roomId, participantName);
+
+        // Display local video
+        const localStream = sdk.getLocalStream();
+        if (localStream) {
+          document.getElementById('local-video').srcObject = localStream;
+        }
+
+        // Show meeting controls
+        document.getElementById('join-form').style.display = 'none';
+        document.getElementById('meeting-controls').style.display = 'block';
+      } catch (error) {
+        console.error('Failed to join meeting:', error);
+        alert('Failed to join meeting: ' + error.message);
+      }
+    };
+
+    window.toggleAudio = async function() {
+      if (!sdk) return;
+
+      await sdk.toggleAudio();
+      audioEnabled = !audioEnabled;
+      document.getElementById('toggle-audio').textContent =
+        audioEnabled ? 'Mute Audio' : 'Unmute Audio';
+      document.getElementById('toggle-audio').className =
+        audioEnabled ? 'btn-success' : 'btn-danger';
+    };
+
+    window.toggleVideo = async function() {
+      if (!sdk) return;
+
+      await sdk.toggleVideo();
+      videoEnabled = !videoEnabled;
+      document.getElementById('toggle-video').textContent =
+        videoEnabled ? 'Stop Video' : 'Start Video';
+      document.getElementById('toggle-video').className =
+        videoEnabled ? 'btn-success' : 'btn-danger';
+    };
+
+    window.toggleScreenShare = async function() {
+      if (!sdk) return;
+
+      try {
+        await sdk.toggleScreenShare();
+      } catch (error) {
+        console.error('Screen share error:', error);
+        alert('Failed to share screen: ' + error.message);
+      }
+    };
+
+    window.leaveMeeting = function() {
+      if (!sdk) return;
+
+      sdk.leaveRoom();
+      sdk.destroy();
+      sdk = null;
+
+      // Reset UI
+      document.getElementById('join-form').style.display = 'flex';
+      document.getElementById('meeting-controls').style.display = 'none';
+      document.getElementById('video-container').innerHTML = `
+        <div class="video-wrapper">
+          <video id="local-video" autoplay muted playsinline></video>
+          <div class="video-label">You</div>
+        </div>
+      `;
+    };
+
+    function updateUI() {
+      updateParticipantList();
+    }
+
+    function updateParticipantList() {
+      if (!sdk) return;
+
+      const participants = sdk.getAllParticipants();
+      document.getElementById('participant-count').textContent = participants.length;
+
+      const listContainer = document.getElementById('participant-list');
+      listContainer.innerHTML = participants.map(p => `
+        <div class="participant-item">
+          ${p.name || 'Guest'} ${p.isLocal ? '(You)' : ''}
+          - 🎤 ${p.audioEnabled ? 'On' : 'Off'}
+          - 📹 ${p.videoEnabled ? 'On' : 'Off'}
+        </div>
+      `).join('');
+    }
+
+    function addRemoteVideo(participantId, stream) {
+      const container = document.getElementById('video-container');
+
+      // Remove existing video if present
+      const existing = document.getElementById(`video-${participantId}`);
+      if (existing) {
+        existing.remove();
+      }
+
+      // Add new video
+      const wrapper = document.createElement('div');
+      wrapper.className = 'video-wrapper';
+      wrapper.innerHTML = `
+        <video id="video-${participantId}" autoplay playsinline></video>
+        <div class="video-label">Participant</div>
+      `;
+      container.appendChild(wrapper);
+
+      const video = document.getElementById(`video-${participantId}`);
+      video.srcObject = stream;
+    }
+  </script>
+</body>
+</html>

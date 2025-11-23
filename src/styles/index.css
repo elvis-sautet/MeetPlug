@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MeetPlug Custom Styles */
+@layer components {
+  /* Base container styles */
+  .meetplug-container {
+    @apply mp-font-sans mp-antialiased;
+  }
+
+  /* Animation utilities */
+  @keyframes mp-pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  .mp-animate-pulse-slow {
+    animation: mp-pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Scrollbar styling */
+  .mp-scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .mp-scrollbar-thin::-webkit-scrollbar-track {
+    @apply mp-bg-gray-800;
+  }
+
+  .mp-scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply mp-bg-gray-600 mp-rounded-full;
+  }
+
+  .mp-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply mp-bg-gray-500;
+  }
+
+  /* Glass morphism effect */
+  .mp-glass {
+    @apply mp-backdrop-blur-md mp-bg-opacity-80;
+  }
+
+  /* Video container aspect ratio */
+  .mp-video-container {
+    @apply mp-relative mp-w-full;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  }
+
+  .mp-video-container video {
+    @apply mp-absolute mp-top-0 mp-left-0 mp-w-full mp-h-full mp-object-cover;
+  }
+}
+
+/* Dark mode defaults */
+.mp-dark {
+  color-scheme: dark;
+}
+
+/* Ensure proper font rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide spinners on number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
