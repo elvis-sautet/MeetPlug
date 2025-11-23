@@ -10,6 +10,7 @@ import type {
   MeetPlugEvents,
   SignalingMessage,
   MediaStatePayload,
+  ReactionType,
 } from '../types';
 
 export class MeetPlugSDK extends EventEmitter<MeetPlugEvents> {
@@ -147,6 +148,9 @@ export class MeetPlugSDK extends EventEmitter<MeetPlugEvents> {
         videoEnabled: true,
         screenShareEnabled: false,
         joinedAt: new Date(),
+        handRaised: false,
+        isMutedByHost: false,
+        reaction: null,
       };
 
       // Create room
@@ -312,6 +316,9 @@ export class MeetPlugSDK extends EventEmitter<MeetPlugEvents> {
       videoEnabled: true,
       screenShareEnabled: false,
       joinedAt: new Date(),
+      handRaised: false,
+      isMutedByHost: false,
+      reaction: null,
     };
 
     this.participants.set(participantId, participant);
@@ -392,6 +399,70 @@ export class MeetPlugSDK extends EventEmitter<MeetPlugEvents> {
     };
 
     this.signalingClient.sendMediaState(this.currentRoom.id, this.localParticipant.id, state);
+  }
+
+  // New Features
+
+  toggleRaiseHand(): void {
+    if (!this.localParticipant) return;
+
+    this.localParticipant.handRaised = !this.localParticipant.handRaised;
+    this.emit('participant:updated', this.localParticipant);
+
+    // Broadcast to other participants
+    // TODO: Add signaling for raise hand
+  }
+
+  sendReaction(reaction: ReactionType): void {
+    if (!this.localParticipant) return;
+
+    this.localParticipant.reaction = reaction;
+    this.emit('participant:updated', this.localParticipant);
+
+    // Clear reaction after 3 seconds
+    setTimeout(() => {
+      if (this.localParticipant) {
+        this.localParticipant.reaction = null;
+        this.emit('participant:updated', this.localParticipant);
+      }
+    }, 3000);
+
+    // TODO: Broadcast to other participants
+  }
+
+  muteParticipant(participantId: string): void {
+    if (!this.localParticipant || !this.currentRoom) return;
+
+    // Only host can mute others
+    if (this.currentRoom.hostId !== this.localParticipant.id) {
+      console.warn('Only host can mute participants');
+      return;
+    }
+
+    const participant = this.participants.get(participantId);
+    if (participant) {
+      participant.isMutedByHost = true;
+      participant.audioEnabled = false;
+      this.emit('participant:updated', participant);
+      // TODO: Broadcast mute command to participant
+    }
+  }
+
+  unmuteParticipant(participantId: string): void {
+    if (!this.localParticipant || !this.currentRoom) return;
+
+    // Only host can unmute others
+    if (this.currentRoom.hostId !== this.localParticipant.id) {
+      console.warn('Only host can unmute participants');
+      return;
+    }
+
+    const participant = this.participants.get(participantId);
+    if (participant) {
+      participant.isMutedByHost = false;
+      this.emit('participant:updated', participant);
+      // TODO: Broadcast unmute permission to participant
+    }
   }
 
   private cleanup(): void {
