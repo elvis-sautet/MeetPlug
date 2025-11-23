@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply mp-border-border;
+  }
+  body {
+    @apply mp-bg-background mp-text-foreground;
+  }
+}
+
 /* MeetPlug Custom Styles */
 @layer components {
   /* Base container styles */
@@ -19,8 +75,36 @@
     }
   }
 
+  @keyframes mp-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes mp-slide-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
   .mp-animate-pulse-slow {
     animation: mp-pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .mp-animate-fade-in {
+    animation: mp-fade-in 0.3s ease-out;
+  }
+
+  .mp-animate-slide-in {
+    animation: mp-slide-in 0.3s ease-out;
   }
 
   /* Scrollbar styling */
@@ -30,36 +114,30 @@
   }
 
   .mp-scrollbar-thin::-webkit-scrollbar-track {
-    @apply mp-bg-gray-800;
+    @apply mp-bg-muted;
   }
 
   .mp-scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply mp-bg-gray-600 mp-rounded-full;
+    @apply mp-bg-muted-foreground/30 mp-rounded-full;
   }
 
   .mp-scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    @apply mp-bg-gray-500;
+    @apply mp-bg-muted-foreground/50;
   }
 
   /* Glass morphism effect */
   .mp-glass {
-    @apply mp-backdrop-blur-md mp-bg-opacity-80;
+    @apply mp-backdrop-blur-md mp-bg-background/80;
   }
 
-  /* Video container aspect ratio */
-  .mp-video-container {
-    @apply mp-relative mp-w-full;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  /* Video container */
+  .mp-video-wrapper {
+    @apply mp-relative mp-overflow-hidden mp-rounded-lg mp-bg-muted;
   }
 
-  .mp-video-container video {
-    @apply mp-absolute mp-top-0 mp-left-0 mp-w-full mp-h-full mp-object-cover;
+  .mp-video-wrapper video {
+    @apply mp-w-full mp-h-full mp-object-cover;
   }
-}
-
-/* Dark mode defaults */
-.mp-dark {
-  color-scheme: dark;
 }
 
 /* Ensure proper font rendering */

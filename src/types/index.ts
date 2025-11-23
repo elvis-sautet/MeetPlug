@@ -6,6 +6,9 @@ export interface MeetPlugConfig {
   enableChat?: boolean;
   enableScreenShare?: boolean;
   maxParticipants?: number;
+  theme?: 'light' | 'dark' | 'system';
+  enableReactions?: boolean;
+  enableRaiseHand?: boolean;
 }
 
 export interface Room {
@@ -25,7 +28,12 @@ export interface Participant {
   videoEnabled: boolean;
   screenShareEnabled: boolean;
   joinedAt: Date;
+  handRaised: boolean;
+  isMutedByHost: boolean;
+  reaction?: ReactionType;
 }
+
+export type ReactionType = '👍' | '❤️' | '😂' | '🎉' | '👏' | '🔥' | null;
 
 export interface ChatMessage {
   id: string;
@@ -34,6 +42,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   type: 'text' | 'system';
+  mentions?: string[]; // User IDs mentioned in the message
 }
 
 // Media Types
