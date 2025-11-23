@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Mic, MicOff, Video, VideoOff, Hand } from 'lucide-react';
+import { Mic, MicOff, VideoOff, Hand } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { cn } from '../lib/utils';

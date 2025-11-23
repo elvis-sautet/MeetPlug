@@ -65,14 +65,18 @@ export function useMeetPlug(config?: MeetPlugConfig): UseMeetPlugReturn {
     };
   }, [config]);
 
-  const joinRoom = useCallback(async (roomId: string, participantName?: string) => {
+  const joinRoom = useCallback(async (
+    roomId: string,
+    participantName?: string,
+    mediaOptions?: { audio?: boolean; video?: boolean }
+  ) => {
     if (!sdkRef.current) return;
 
     setIsJoining(true);
     setError(null);
 
     try {
-      await sdkRef.current.joinRoom(roomId, participantName);
+      await sdkRef.current.joinRoom(roomId, participantName, mediaOptions);
     } catch (err) {
       setError(err as Error);
       setIsJoining(false);

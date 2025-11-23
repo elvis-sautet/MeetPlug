@@ -132,10 +132,22 @@ export class MeetPlugSDK extends EventEmitter<MeetPlugEvents> {
     });
   }
 
-  async joinRoom(roomId: string, participantName?: string): Promise<Room> {
+  async joinRoom(
+    roomId: string,
+    participantName?: string,
+    mediaOptions?: { audio?: boolean; video?: boolean }
+  ): Promise<Room> {
     try {
-      // Initialize media first
-      await this.initializeMedia();
+      // Initialize media only if requested
+      const enableAudio = mediaOptions?.audio !== false;
+      const enableVideo = mediaOptions?.video !== false;
+
+      if (enableAudio || enableVideo) {
+        await this.initializeMedia({
+          audio: enableAudio,
+          video: enableVideo,
+        });
+      }
 
       // Create local participant
       const participantId = this.generateId();
@@ -143,9 +155,9 @@ export class MeetPlugSDK extends EventEmitter<MeetPlugEvents> {
         id: participantId,
         name: participantName || 'Guest',
         isLocal: true,
-        stream: this.localStream!,
-        audioEnabled: true,
-        videoEnabled: true,
+        stream: this.localStream || undefined,
+        audioEnabled: enableAudio && !!this.localStream,
+        videoEnabled: enableVideo && !!this.localStream,
         screenShareEnabled: false,
         joinedAt: new Date(),
         handRaised: false,
